@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="user-scalabele=no , width=device-width, initial-scale=1.0">
+    <title>WEB SQL DATABASE WITH HTML AND JAVASCRIPT</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+</head>
+<body style="margin:30px">
+    <div class="container">
+        <div class="row">
+            <form action="">
+                <fieldset>
+                    <legend>Item Name</legend>
+                    <input type="text " class="form -control" name="" id="item">
+                    <legend>Quantity</legend>
+                    <input type="number" id="quantity" name="" class="form-control">
+                    <hr>
+
+                    <button type="button" class="btn btn-success" id="insert">insert</button>
+                    <button type="button" class="btn btn-success" id="create">create Table</button>
+                    <button type="button" class="btn btn-danger" id="remove">Delete Table</button>
+                    <button type="button" class="btn btn-success" id="list">Fetch Record</button>
+                    
+                    <hr>
+
+                    <h4>Record</h4>
+                    <table id="itemlist" table table-bordered table-hover >
+
+
+                    </table>
+
+                </fieldset>
+            </form>
+        </div>
+
+    </div>
+    <script type="text/javascript">
+        var db=openDatabase("itemDB" , "1.0" ,"itemDB", 65535)
+        $(function(){
+            $("#create").click(function(){
+                db.transaction (function(transaction){
+                    var sql="CREATE TABLE items" +
+                    "(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
+                    "item VARCHAR(100) NOT NULL," +
+                    "quantity INT(5) NOT NULL)";
+                    transaction.executeSql(sql,undefined,
+                        function(){
+                        alert("Table is created successfully");
+                    },function(){
+                        alert("Table is already created");
+                    })
+                });
+            });
+            $("#remove").click(function(){
+                if(!confirm("Are yo sure to delete this table?","")) return;;
+                db.transaction(function(transaction){
+                    var sql="DROP  TABLE items";
+                    transaction.executeSql(sql,undefined,
+                    function(){
+                        alert("Table is deleted successfully")
+
+                    },
+                    function(){
+                        alert("error occured while deleting this table");
+                    })
+                });
+            });
+            $("#insert").click(function(){
+                var item=$("#item").val();
+                var qty=$("#quantity").val();
+                db.transaction(function(transaction){
+                    var sql="INSERT INTO items(item,quantity) VALUES(?,?)";
+                    transaction.executeSql(sql,[item,qty],
+                    function(){
+                        alert("item added successfully")
+                    },function(transaction,err){
+                          alert(err.message);
+                        alert("item failed to be added")
+                    })
+                })
+
+            })
+            $("#list").click(function(){
+                $(itemlist).children().remove();
+                db.transaction(function(transaction){
+                    var sql="SELECT * FROM items ORDER BY id DESC";
+                    transaction.executeSql(sql,undefined,
+                    function(transaction,result){
+                        if(result.rows.length){
+                            for(var i=0;i<result.rows.length;i++){
+                                var row=result.rows.item(i);
+                                var item=row.item;
+                                var id=row.id;
+                                var quantity=row.quantity;
+                                $("#itemlist").append('<tr><td> ' + id + '<td/> <td>' +item+'</td> <td>'+quantity+'</td></tr>');
+
+                            }
+
+                        }else{
+                            $("#itemlist").append('<tr><td colspan="3" align="center"> No item found</td></tr>');
+                        }
+
+
+                    },function(transaction,err){
+                        alert(err.message);
+                    })
+                })
+            })
+
+        })
+    </script>
+    
+</body>
+</html>
